@@ -1,0 +1,5 @@
+{
+  "name": "AIA Migration Portal",
+  "description": "Secure interface for migrating Legacy AIA tokens to the new AIA Native Chain.",
+  "requestFramePermissions": []
+}
