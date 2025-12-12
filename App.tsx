@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ethers } from 'ethers';
 import { Navbar } from './components/Navbar';
 import { MigrationCard } from './components/MigrationCard';
 import { InfoPanel } from './components/InfoPanel';
@@ -6,7 +7,6 @@ import { WalletModal } from './components/WalletModal';
 import { WalletState } from './types';
 
 const App: React.FC = () => {
-  // Mock State
   const [wallet, setWallet] = useState<WalletState>({
     isConnected: false,
     address: null,
@@ -21,19 +21,40 @@ const App: React.FC = () => {
     setIsWalletModalOpen(true);
   };
 
-  const handleWalletSelect = (walletName: string) => {
-    // Close modal
+  const handleWalletSelect = async (walletName: string) => {
     setIsWalletModalOpen(false);
     
-    // Simulate wallet connection with a loader/delay
-    setTimeout(() => {
-      setWallet({
-        isConnected: true,
-        address: "0x71C...9A21",
-        balanceV1: 15420.50, // Legacy Balance
-        balanceV2: 0.00 // Native Balance
-      });
-    }, 500);
+    // Check if a Web3 provider is available
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        // Create ethers provider
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        
+        // Request account access
+        await provider.send("eth_requestAccounts", []);
+        
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+        
+        // Get native balance (BNB/ETH)
+        const balanceBig = await provider.getBalance(address);
+        const balance = parseFloat(ethers.utils.formatEther(balanceBig));
+
+        setWallet({
+          isConnected: true,
+          address: address,
+          balanceV1: balance, // Displaying native balance for V1
+          balanceV2: 0 // Native chain balance
+        });
+
+      } catch (error) {
+        console.error("User rejected connection or error occurred", error);
+        alert("Failed to connect wallet. Please try again.");
+      }
+    } else {
+      // Fallback for users without a wallet
+      alert("No crypto wallet found. Please install MetaMask or a compatible browser extension.");
+    }
   };
 
   const handleDisconnect = () => {

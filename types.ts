@@ -20,3 +20,9 @@ export interface WalletState {
   balanceV1: number;
   balanceV2: number;
 }
+
+declare global {
+  interface Window {
+    ethereum: any;
+  }
+}
